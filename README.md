@@ -6,7 +6,9 @@
 
 ## requirements:
 
-    - docker
+1.  docker
+
+Run command:
 
 - ```bash
   docker compose up
@@ -22,4 +24,3 @@
   - Click on 'View Results' and keep the page on side to see realtime updates.
   - On the root page, the options will have appeared, click on any option and the vote will be added.
   - I have not added functionality to differentiate users, so each click will be added as a vote.
-
