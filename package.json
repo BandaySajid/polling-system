@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "express": "^4.21.1",
+    "kafkajs": "^2.2.4",
+    "postgres": "^3.4.5",
+    "ws": "^8.18.0"
+  },
+  "type": "module",
+  "name": "assignment",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

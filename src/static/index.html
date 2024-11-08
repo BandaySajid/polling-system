@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polling System</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+      /* Global styles */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Header styles */
+      header {
+        background-color: #3498db;
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+      }
+
+      /* Main content styles */
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Poll creation form styles */
+      .poll-form {
+        background-color: #f1f1f1;
+        padding: 20px;
+        border-radius: 5px;
+      }
+
+      .poll-form input,
+      .poll-form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+
+      .poll-form button {
+        background-color: #3498db;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      /* Poll list styles */
+      .poll-list {
+        margin-top: 20px;
+      }
+
+      .poll-item {
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
+
+      .poll-item h3 {
+        margin-top: 0;
+      }
+
+      .poll-options {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      .poll-options li {
+        margin-bottom: 10px;
+      }
+
+      .poll-options button {
+        background-color: #3498db;
+        color: #fff;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      /* Responsive styles */
+      @media (max-width: 600px) {
+        .container {
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Polling System</h1>
+    </header>
+    <div class="container">
+      <form class="poll-form">
+        <h2>Create a Poll</h2>
+        <input type="text" placeholder="Poll Question" />
+        <textarea placeholder="Poll Options (one per line)"></textarea>
+        <button type="submit">Create Poll</button>
+      </form>
+      <div class="poll-list">
+        <h2>Active Polls</h2>
+      </div>
+    </div>
+  </body>
+  <script>
+    const pollForm = document.querySelector(".poll-form");
+    const pollList = document.querySelector(".poll-list");
+    console.log("working");
+
+    function displayPoll(poll) {
+      const pollItem = document.createElement("div");
+    			pollItem.id = poll.id;
+      pollItem.classList.add("poll-item");
+
+      pollItem.innerHTML = `
+        <h3>${poll.question}</h3>
+        <p>id: ${poll.id}</p>
+    		<a href="/polls/${poll.id}/result">View Results</a>
+
+        <ul class="poll-options">
+          ${poll.options
+            .map(
+              (option, i) => `
+            <li>
+    							${option} <button data-option-id="${i}" data-poll-id="${poll.id}">Vote</button>
+            </li>
+          `,
+            )
+            .join("")}
+        </ul>
+      `;
+
+      pollList.appendChild(pollItem);
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const response = await fetch("/polls");
+
+        if (!response.ok) {
+          console.error("Error creating poll:", response.status);
+        } else {
+          const json = await response.json();
+          for (const poll of json.polls) {
+            displayPoll(poll);
+          }
+        }
+      } catch (error) {
+        console.error("Error creating poll:", error);
+      }
+    });
+
+    async function createPoll(event) {
+      event.preventDefault();
+
+      const question = document.querySelector(".poll-form input").value;
+      const options = document
+        .querySelector(".poll-form textarea")
+        .value.split("\n");
+
+      try {
+        const response = await fetch("/polls", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ question, options }),
+        });
+
+        if (!response.ok) {
+          console.error("Error creating poll:", response.status);
+    				}else{
+    					window.location.reload();
+    				}
+      } catch (error) {
+        console.error("Error creating poll:", error);
+      }
+    }
+
+    // Function to handle voting
+    async function voteOnPoll(event) {
+      if (event.target.tagName === "BUTTON") {
+        const optionId = event.target.dataset.optionId;
+        const poll_id = event.target.dataset.pollId;
+        try {
+          const response = await fetch(`/polls/${poll_id}/vote`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ option: optionId }),
+          });
+
+          if (!response.ok) {
+            console.error("Error voting on poll:", response.status);
+    						Toastify({
+    								text: "Vote error!",
+      duration: 3000,  // Time the toast will be displayed (in milliseconds)
+      close: true,     // Show a close button
+      gravity: "top",  // Position of the toast ('top' or 'bottom')
+      position: "right", // Position of the toast ('left', 'center', 'right')
+      backgroundColor: "red",  // Background color for warning
+      className: "warning-toast", // Optional class for custom styling
+    								type: "warning"}).showToast()
+    					}else{
+    Toastify({
+    								text: "Vote submitted!",
+      duration: 3000,  // Time the toast will be displayed (in milliseconds)
+      close: true,     // Show a close button
+      gravity: "top",  // Position of the toast ('top' or 'bottom')
+      position: "right", // Position of the toast ('left', 'center', 'right')
+      backgroundColor: "success",  // Background color for warning
+      className: "success-toast", // Optional class for custom styling
+    								type: "warning"}).showToast()
+    					}
+    						} catch (error) {
+    							console.error("Error voting on poll:", error);
+    					}
+      }
+    }
+
+
+
+    pollForm.addEventListener("submit", createPoll);
+    pollList.addEventListener("click", voteOnPoll);
+  </script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+</html>
